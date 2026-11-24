@@ -452,9 +452,9 @@ def neobrutalism_dashboard():
         <div class="neo-box bg-white p-6 space-y-6">
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b-3 border-black pb-4 gap-2">
             <div>
-              <span class="bg-black text-white px-2 py-0.5 font-mono text-xs font-bold uppercase">Package #WP-AMR-T2</span>
-              <h2 class="text-2xl font-black uppercase mt-1">Waterproofing at Vinayak Amara, Tower-2</h2>
-              <p class="text-xs font-mono text-slate-700">BOQ: 12,500 sq.ft &bull; Baseline Budget: ₹45.00/sq.ft &bull; Total Budget: ₹5,62,500.00</p>
+              <span id="packageTag" class="bg-black text-white px-2 py-0.5 font-mono text-xs font-bold uppercase">Package #WP-AMR-T2</span>
+              <h2 id="packageTitle" class="text-2xl font-black uppercase mt-1">Waterproofing at Vinayak Amara, Tower-2</h2>
+              <p id="packageMeta" class="text-xs font-mono text-slate-700">BOQ: 12,500 sq.ft &bull; Baseline Budget: ₹45.00/sq.ft &bull; Total Budget: ₹5,62,500.00</p>
             </div>
             <div id="statusBadge" class="bg-[#FDE047] neo-box-sm px-4 py-1.5 font-mono font-bold text-xs uppercase">
               STATUS: AWAITING HOD APPROVAL
@@ -475,7 +475,7 @@ def neobrutalism_dashboard():
                   <th class="p-3">Rank & Decision</th>
                 </tr>
               </thead>
-              <tbody class="font-medium">
+              <tbody id="comparativeTableBody" class="font-medium">
                 <tr class="border-b-2 border-black bg-[#DCFCE7]">
                   <td class="p-3 border-r-2 border-black font-bold">
                     Asian Paints Chemical Div.
@@ -587,7 +587,7 @@ def neobrutalism_dashboard():
           <div class="neo-box-sm bg-[#FEF08A] p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h4 class="font-bold text-base uppercase">HOD Award Sign-off</h4>
-              <p class="text-xs text-slate-800">
+              <p id="hodDeckSummary" class="text-xs text-slate-800">
                 Recommended award: <strong>Asian Paints Chemical Division</strong> (₹5,24,200.00). Click below to approve and export to Farvision ERP.
               </p>
             </div>
@@ -615,13 +615,21 @@ def neobrutalism_dashboard():
   </div>
 
   <script>
+    let currentStatementId = "CS-AMR-T2-E2E";
+
     async function submitRequisition() {
+      const project = document.getElementById('reqProject').value;
+      const tower = document.getElementById('reqTower').value;
+      const qty = parseFloat(document.getElementById('reqQty').value) || 50;
+      const reqDate = document.getElementById('reqDate').value;
+      const note = document.getElementById('reqText').value || "dr fixit fastflex chemical for waterproofing at amara tower 2";
+
       const payload = {
-        raw_text: document.getElementById('reqText').value || "dr fixit fastflex chemical for waterproofing at amara tower 2",
-        project_name: document.getElementById('reqProject').value,
-        tower: document.getElementById('reqTower').value,
-        quantity: parseFloat(document.getElementById('reqQty').value),
-        required_by_date: document.getElementById('reqDate').value
+        raw_text: note,
+        project_name: project,
+        tower: tower,
+        quantity: qty,
+        required_by_date: reqDate
       };
 
       try {
@@ -640,16 +648,150 @@ def neobrutalism_dashboard():
           <div>Baseline Rate: ₹${data.matched_catalog_item.budget_rate} / ${data.matched_catalog_item.standard_unit}</div>
           ${data.duplicate_warnings.length > 0 ? `<div class="text-red-700 font-bold mt-1">${data.duplicate_warnings[0]}</div>` : ''}
         `;
+
+        // Dynamically re-evaluate Comparative Statement for this matched requisition
+        await updateComparativeForRequisition(data.requisition, data.matched_catalog_item);
+
       } catch (err) {
         alert("Catalog matching failed: " + err);
       }
     }
 
+    async function updateComparativeForRequisition(req, catalogItem) {
+      currentStatementId = "CS-" + req.requisition_id;
+      const newPackageTitle = `${catalogItem.category} at ${req.project_name}, ${req.tower}`;
+
+      // Update Header Display
+      document.getElementById('packageTag').innerText = `Package #${req.requisition_id}`;
+      document.getElementById('packageTitle').innerText = newPackageTitle;
+
+      // Base BOQ area from quantity (if drums, 1 drum = 250 sq.ft)
+      const boqQty = catalogItem.standard_unit === "drum" ? (req.requested_quantity * 250) : (req.requested_quantity * 250);
+      const totalBudget = boqQty * catalogItem.budget_rate;
+      document.getElementById('packageMeta').innerText = `BOQ: ${boqQty.toLocaleString()} sq.ft • Baseline Budget: ₹${catalogItem.budget_rate}/sq.ft • Total Budget: ₹${totalBudget.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+
+      // Quotes dynamically adjusted to requisition quantity
+      const quotesPayload = [
+        {
+          vendor_name: "Bengal Waterproofing Solutions",
+          quoted_unit_rate: "35.00",
+          quoted_unit: "sq.ft",
+          gst_percent: "18.0",
+          freight_term: "included",
+          exclusions: ["Surface grinding and crack filling extra"]
+        },
+        {
+          vendor_name: "Asian Paints Chemical Division",
+          quoted_unit_rate: "8800.00",
+          quoted_unit: "drum",
+          gst_percent: "18.0",
+          freight_term: "extra_fixed",
+          freight_amount: "5000.00"
+        },
+        {
+          vendor_name: "Dulux Aquatech Pro",
+          quoted_unit_rate: "410.00",
+          quoted_unit: "sq.m",
+          gst_percent: "18.0",
+          freight_term: "included"
+        }
+      ];
+
+      const res = await fetch(`/api/v1/comparatives/generate?statement_id=${currentStatementId}&project_name=${encodeURIComponent(req.project_name)}&package_title=${encodeURIComponent(newPackageTitle)}&boq_quantity=${boqQty}&boq_unit=sq.ft&budget_rate=${catalogItem.budget_rate}&coverage_per_drum=250`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(quotesPayload)
+      });
+
+      if (res.ok) {
+        const cs = await res.json();
+        renderComparativeRows(cs);
+
+        // Reset approval state
+        document.getElementById('statusBadge').innerText = "STATUS: AWAITING HOD APPROVAL";
+        document.getElementById('statusBadge').className = "bg-[#FDE047] neo-box-sm px-4 py-1.5 font-mono font-bold text-xs uppercase";
+
+        const btn = document.getElementById('approveBtn');
+        btn.innerText = "Approve Award ✓";
+        btn.disabled = false;
+        btn.className = "neo-btn bg-[#86EFAC] hover:bg-[#4ADE80] font-black uppercase text-sm px-5 py-3";
+
+        ['exportJsonBtn', 'exportCsvBtn'].forEach(id => {
+          const b = document.getElementById(id);
+          b.disabled = true;
+          b.className = "neo-btn bg-white hover:bg-slate-100 font-bold uppercase text-xs px-3 py-3 opacity-50 cursor-not-allowed";
+        });
+
+        document.getElementById('approvalBanner').classList.add('hidden');
+      }
+    }
+
+    function renderComparativeRows(cs) {
+      const tbody = document.getElementById('comparativeTableBody');
+      tbody.innerHTML = '';
+
+      cs.ranked_vendors.forEach((v) => {
+        const q = v.normalized_quote;
+        const isRec = v.is_recommended;
+        const isL1 = v.is_l1;
+
+        const rowBg = isRec ? 'bg-[#DCFCE7]' : 'bg-white';
+        const rankPill = isRec 
+          ? `<span class="bg-[#86EFAC] border border-black px-2 py-0.5 font-mono text-xs font-black uppercase inline-block mb-1">RECOMMENDED</span>`
+          : (isL1 ? `<span class="bg-[#FEF08A] border border-black px-2 py-0.5 font-mono text-xs font-bold uppercase inline-block mb-1">L1 COMMERCIAL</span>` : `<span class="bg-slate-200 border border-black px-2 py-0.5 font-mono text-xs font-bold uppercase inline-block mb-1">RANK #${v.rank}</span>`);
+
+        const disputesBadge = v.track_record.active_disputes > 0
+          ? `<span class="bg-red-200 text-red-900 font-bold px-1">${v.track_record.active_disputes} Disputes</span>`
+          : `<span class="text-emerald-700 font-bold">0 Disputes</span>`;
+
+        const tr = document.createElement('tr');
+        tr.className = `border-b-2 border-black ${rowBg}`;
+        tr.innerHTML = `
+          <td class="p-3 border-r-2 border-black font-bold">
+            ${v.vendor_name}
+            <span class="block text-[10px] font-mono font-normal text-slate-600">Unit: ${q.quoted_unit}</span>
+          </td>
+          <td class="p-3 border-r-2 border-black font-mono">
+            ₹${Number(q.quoted_unit_rate).toLocaleString('en-IN')} / ${q.quoted_unit}
+            <span class="block text-[10px] text-slate-600">Req: ${Number(q.normalized_quantity).toLocaleString()} ${q.quoted_unit}</span>
+          </td>
+          <td class="p-3 border-r-2 border-black text-xs">
+            18% GST (₹${Number(q.gst_amount).toLocaleString('en-IN')})<br>
+            Freight: ₹${Number(q.freight_amount).toLocaleString('en-IN')}
+          </td>
+          <td class="p-3 border-r-2 border-black font-mono font-bold text-base">
+            ₹${Number(q.total_landed_cost).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+            <span class="block text-[10px] text-emerald-800 font-bold">₹${Number(q.landed_rate_per_boq_unit).toFixed(2)} / sq.ft</span>
+          </td>
+          <td class="p-3 border-r-2 border-black text-xs font-mono">
+            ${v.track_record.on_time_delivery_pct}% On-time<br>
+            ${v.track_record.quality_pass_pct}% Quality<br>
+            ${disputesBadge}
+          </td>
+          <td class="p-3 border-r-2 border-black font-mono font-bold text-lg ${isRec ? 'text-emerald-900' : 'text-slate-700'}">
+            ${v.composite_score}
+          </td>
+          <td class="p-3">
+            ${rankPill}
+            <p class="text-[11px] leading-tight ${isL1 && !isRec ? 'text-red-800 font-semibold' : 'text-slate-800'}">
+              ${v.decision_rationale}
+            </p>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const rec = cs.ranked_vendors.find(v => v.is_recommended);
+      document.getElementById('hodDeckSummary').innerHTML = `
+        Recommended award: <strong>${rec.vendor_name}</strong> (₹${Number(rec.normalized_quote.total_landed_cost).toLocaleString('en-IN', {minimumFractionDigits: 2})}). Click below to approve and export to Farvision ERP.
+      `;
+    }
+
     async function signApproval() {
       const payload = {
-        statement_id: "CS-AMR-T2-E2E",
+        statement_id: currentStatementId,
         approved_by: "Arindam Mukherjee (HOD Projects)",
-        remarks: "Approved Asian Paints as recommended. Zero dispute risk prioritised."
+        remarks: "Approved as recommended. Reliability prioritised over disputed L1."
       };
 
       try {
@@ -677,8 +819,8 @@ def neobrutalism_dashboard():
           const banner = document.getElementById('approvalBanner');
           banner.classList.remove('hidden');
           banner.innerHTML = `
-            <div>&check; DIGITAL SIGNATURE RECORDED: Arindam Mukherjee (HOD Projects) &bull; ${new Date().toLocaleTimeString()}</div>
-            <div class="text-slate-800 font-normal">Audit Reference: FARVISION-PO-CS-AMR-T2-E2E &bull; Ready for ERP Injection</div>
+            <div>✓ DIGITAL SIGNATURE RECORDED: Arindam Mukherjee (HOD Projects) • ${new Date().toLocaleTimeString()}</div>
+            <div class="text-slate-800 font-normal">Audit Reference: FARVISION-PO-${currentStatementId} • Ready for ERP Injection</div>
           `;
         }
       } catch (err) {
@@ -687,7 +829,7 @@ def neobrutalism_dashboard():
     }
 
     async function downloadERPPayload(format) {
-      const url = `/api/v1/erp/export/${format}/CS-AMR-T2-E2E`;
+      const url = `/api/v1/erp/export/${format}/${currentStatementId}`;
       window.open(url, '_blank');
     }
   </script>
