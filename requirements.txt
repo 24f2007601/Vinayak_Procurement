@@ -1,0 +1,24 @@
+# Web Framework & API Server
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.0
+
+# LLM & AI SDKs
+google-genai==1.0.0
+google-generativeai==0.8.3
+python-dotenv==1.0.1
+
+# Document & PDF Processing
+pypdf==5.1.0
+pdfplumber==0.11.4
+pillow==11.0.0
+
+# HTTP & Network Clients
+httpx==0.28.1
+requests==2.32.3
+
+# Testing & Quality
+pytest==8.3.4
+pytest-asyncio==0.25.0
+ruff==0.8.4
