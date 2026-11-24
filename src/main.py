@@ -424,7 +424,18 @@ def neobrutalism_dashboard():
 
             <div>
               <label class="block text-xs font-mono font-bold uppercase mb-1">Site Engineer Note</label>
-              <textarea id="reqText" rows="3" class="w-full neo-input p-2.5 text-sm font-medium" placeholder="e.g. Urgent Dr Fixit fastflex chemical for terrace waterproofing"></textarea>
+              <textarea id="reqText" rows="2" class="w-full neo-input p-2.5 text-sm font-medium" placeholder="e.g. Urgent Dr Fixit fastflex chemical for terrace waterproofing"></textarea>
+            </div>
+
+            <!-- Voice Note / Audio Upload Section -->
+            <div class="border-2 border-dashed border-black p-3 bg-[#FFFBEB] space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-mono font-bold uppercase flex items-center gap-1.5 cursor-pointer">
+                  <span>🎙️ Voice Note / Audio</span>
+                </label>
+                <span id="audioStatus" class="text-[10px] font-mono text-slate-500">.mp3, .wav, .m4a, .ogg</span>
+              </div>
+              <input id="audioInput" type="file" accept="audio/*" class="w-full text-xs font-mono file:mr-2 file:py-1 file:px-2 file:border-2 file:border-black file:bg-[#BAE6FD] file:font-bold file:cursor-pointer cursor-pointer" onchange="handleAudioUpload(event)" />
             </div>
 
             <button type="submit" class="w-full neo-btn bg-[#67E8F9] hover:bg-[#22D3EE] text-black font-extrabold uppercase py-3 text-sm">
@@ -616,6 +627,31 @@ def neobrutalism_dashboard():
 
   <script>
     let currentStatementId = "CS-AMR-T2-E2E";
+
+    function handleAudioUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const status = document.getElementById('audioStatus');
+      status.innerText = "Transcribing audio...";
+      status.className = "text-[10px] font-mono text-emerald-800 font-bold";
+
+      // Simulate voice note transcription (or plug into Whisper/Groq Audio endpoint)
+      setTimeout(() => {
+        const textField = document.getElementById('reqText');
+        const fileName = file.name.toLowerCase();
+        
+        if (fileName.includes("cement") || fileName.includes("ambuja")) {
+          textField.value = "Need 200 bags PPC Grade 53 cement for foundation casting urgent";
+        } else if (fileName.includes("steel") || fileName.includes("tmt")) {
+          textField.value = "Require 15 MT Tata Tiscon Fe 550 TMT rebar for column work";
+        } else {
+          textField.value = "Urgent Dr Fixit fastflex chemical for terrace waterproofing at Tower 2";
+        }
+
+        status.innerText = `Transcribed: ${file.name}`;
+      }, 600);
+    }
 
     async function submitRequisition() {
       const project = document.getElementById('reqProject').value;
