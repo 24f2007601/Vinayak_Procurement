@@ -10,7 +10,7 @@
 | Phase | Description | Status | Completion Date | Commit |
 |:---:|---|:---:|:---:|:---:|
 | **Phase 1** | Foundation, Schemas & Deterministic Cost Engine | **COMPLETED** (100%) | 2026-11-24 | [`b1c550a`](https://github.com/24f2007601/Vinayak_Procurement/commit/b1c550a) |
-| **Phase 2** | Ingestion & Multimodal Extraction Pipeline | **COMPLETED** (100%) | 2026-11-24 | Pending commit |
+| **Phase 2** | Ingestion & Multimodal Extraction Pipeline | **COMPLETED** (100%) | 2026-11-24 | [`68aedfa`](https://github.com/24f2007601/Vinayak_Procurement/commit/68aedfa) |
 | **Phase 3** | Comparative Statement Engine & HOD Dashboard | **READY TO START** | — | — |
 | **Phase 4** | Farvision ERP Bridge & Security Hardening | **PENDING** | — | — |
 
