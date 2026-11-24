@@ -332,6 +332,11 @@ def neobrutalism_dashboard():
     body {
       font-family: 'Space Grotesk', sans-serif;
       background-color: #FEFCE8;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    body.dark {
+      background-color: #0F172A;
+      color: #F8FAFC;
     }
     .font-mono {
       font-family: 'Space Mono', monospace;
@@ -340,18 +345,37 @@ def neobrutalism_dashboard():
       border: 3px solid #000000;
       box-shadow: 5px 5px 0px 0px #000000;
     }
+    body.dark .neo-box {
+      border-color: #F8FAFC;
+      box-shadow: 5px 5px 0px 0px #F8FAFC;
+      background-color: #1E293B;
+      color: #F8FAFC;
+    }
     .neo-box-sm {
       border: 2px solid #000000;
       box-shadow: 3px 3px 0px 0px #000000;
+    }
+    body.dark .neo-box-sm {
+      border-color: #F8FAFC;
+      box-shadow: 3px 3px 0px 0px #F8FAFC;
+      background-color: #1E293B;
+      color: #F8FAFC;
     }
     .neo-btn {
       border: 3px solid #000000;
       box-shadow: 4px 4px 0px 0px #000000;
       transition: all 0.15s ease-in-out;
     }
+    body.dark .neo-btn {
+      border-color: #F8FAFC;
+      box-shadow: 4px 4px 0px 0px #F8FAFC;
+    }
     .neo-btn:hover {
       transform: translate(2px, 2px);
       box-shadow: 2px 2px 0px 0px #000000;
+    }
+    body.dark .neo-btn:hover {
+      box-shadow: 2px 2px 0px 0px #F8FAFC;
     }
     .neo-btn:active {
       transform: translate(4px, 4px);
@@ -362,10 +386,21 @@ def neobrutalism_dashboard():
       box-shadow: 3px 3px 0px 0px #000000;
       outline: none;
     }
+    body.dark .neo-input {
+      border-color: #F8FAFC;
+      box-shadow: 3px 3px 0px 0px #F8FAFC;
+      background-color: #334155;
+      color: #F8FAFC;
+    }
     .neo-input:focus {
       border-color: #000000;
       box-shadow: 4px 4px 0px 0px #000000;
       background-color: #FFFBEB;
+    }
+    body.dark .neo-input:focus {
+      border-color: #F8FAFC;
+      box-shadow: 4px 4px 0px 0px #F8FAFC;
+      background-color: #475569;
     }
   </style>
 </head>
@@ -383,6 +418,12 @@ def neobrutalism_dashboard():
         <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mt-2 text-black">PROCUREMENT PORTAL</h1>
         <p class="font-bold text-sm md:text-base text-black mt-1">Site Requisitions &bull; Vendor Comparatives &bull; Purchase Orders</p>
       </div>
+
+      <!-- Theme Mode Toggle -->
+      <button id="themeToggleBtn" onclick="toggleTheme()" class="neo-btn bg-white hover:bg-slate-100 text-black px-3.5 py-2 font-mono text-xs font-bold uppercase flex items-center gap-2 cursor-pointer" aria-label="Toggle light and dark mode">
+        <span id="themeIcon">🌙</span>
+        <span id="themeLabel">Dark Mode</span>
+      </button>
     </header>
 
     <!-- Main Grid -->
@@ -627,6 +668,27 @@ def neobrutalism_dashboard():
 
   <script>
     let currentStatementId = "CS-AMR-T2-E2E";
+
+    function toggleTheme() {
+      const isDark = document.body.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateThemeUI(isDark);
+    }
+
+    function updateThemeUI(isDark) {
+      const icon = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (icon && label) {
+        icon.innerText = isDark ? '☀️' : '🌙';
+        label.innerText = isDark ? 'Light Mode' : 'Dark Mode';
+      }
+    }
+
+    // Auto-load saved theme preference
+    if (localStorage.getItem('theme') === 'dark' || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem('theme'))) {
+      document.body.classList.add('dark');
+      updateThemeUI(true);
+    }
 
     function handleAudioUpload(event) {
       const file = event.target.files[0];
