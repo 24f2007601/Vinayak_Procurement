@@ -11,8 +11,8 @@
 |:---:|---|:---:|:---:|:---:|
 | **Phase 1** | Foundation, Schemas & Deterministic Cost Engine | **COMPLETED** (100%) | 2026-11-24 | [`b1c550a`](https://github.com/24f2007601/Vinayak_Procurement/commit/b1c550a) |
 | **Phase 2** | Ingestion & Multimodal Extraction Pipeline | **COMPLETED** (100%) | 2026-11-24 | [`68aedfa`](https://github.com/24f2007601/Vinayak_Procurement/commit/68aedfa) |
-| **Phase 3** | Comparative Statement Engine & HOD Dashboard | **COMPLETED** (100%) | 2026-11-24 | [`ed469de`](https://github.com/24f2007601/Vinayak_Procurement/commit/ed469de) |
-| **Phase 4** | Farvision ERP Bridge & Security Hardening | **COMPLETED** (100%) | 2026-11-24 | [`ed469de`](https://github.com/24f2007601/Vinayak_Procurement/commit/ed469de) |
+| **Phase 3** | Comparative Statement Engine & Neobrutalism HOD Dashboard | **COMPLETED** (100%) | 2026-11-24 | [`01e2a40`](https://github.com/24f2007601/Vinayak_Procurement/commit/01e2a40) |
+| **Phase 4** | Farvision ERP Export Bridge, Security & Containerization | **COMPLETED** (100%) | 2026-11-24 | Pending commit |
 
 ---
 
@@ -64,30 +64,33 @@
 
 ---
 
-### Phase 3: Comparative Statement Engine & HOD Approval Cockpit
+### Phase 3: Comparative Statement Engine & Neobrutalism HOD Dashboard
 - [x] **M3.1: Comparative Statement Generator API** (`src/main.py`)
   - [x] REST API endpoints for uploading quotes and generating comparative statement JSON.
   - [x] Identification and flagging of commercial exclusions.
 - [x] **M3.2: Executive HOD Approval Interface (UI)** (`src/main.py`)
   - [x] Requisition input view for site engineers.
-  - [x] High-density side-by-side comparative matrix table.
+  - [x] High-density side-by-side comparative matrix table in Neobrutalism design style (`neobrutalism.dev`).
   - [x] One-click HOD recommendation card with plain-English trade-off summary.
 - [x] **M3.3: Phase 3 Test Verification** (`tests/test_api_flow.py`)
   - [x] API integration tests (`TestClient`).
   - [x] Approval workflow state transition tests (`PENDING` $\rightarrow$ `APPROVED`).
+  - [x] Design guidelines compliance audit (`UI_DESIGN_AUDIT.md`).
 
 ---
 
-### Phase 4: Production Hardening, ERP Bridge & Deployment
-- [x] **M4.1: Farvision ERP Export Staging Bridge** (`src/main.py`)
-  - [x] Farvision-compliant JSON/CSV PO staging payload generator (`/api/v1/erp/export/{id}`).
-  - [x] PO reference, line-item rate, and approved audit rationale export.
-- [x] **M4.2: Security & Access Control Hardening** (`SECURITY_AUDIT.md`)
-  - [x] Role-based access control rules enforced (no unapproved PO export).
-  - [x] Immutable audit log parameters preserved on approval.
-- [x] **M4.3: Health Checks & Interactive Documentation**
-  - [x] Automated `/health` endpoint.
-  - [x] Interactive OpenAPI/Swagger documentation (`/docs`).
+### Phase 4: Farvision ERP Bridge, Security & Containerization
+- [x] **M4.1: Farvision ERP Export Staging Bridge** (`src/services/erp_service.py`)
+  - [x] Farvision-compliant JSON PO staging generator (`/api/v1/erp/export/json/{id}`).
+  - [x] Farvision-compliant legacy CSV PO staging generator (`/api/v1/erp/export/csv/{id}`).
+  - [x] Rejection of export requests for unapproved statements.
+- [x] **M4.2: Security & Tamper-Proof Audit Logging** (`src/services/audit_service.py`)
+  - [x] Immutable append-only audit log capturing all events (`/api/v1/audit/logs`).
+  - [x] Actor ID, timestamp, and full payload snapshot preservation.
+- [x] **M4.3: Containerization & Infrastructure** (`Dockerfile`, `docker-compose.yml`)
+  - [x] Multi-stage slim Dockerfile running as non-root user `appuser`.
+  - [x] Healthcheck probes and docker-compose orchestration.
+  - [x] 100% test suite green (18/18 tests passed).
 
 ---
 

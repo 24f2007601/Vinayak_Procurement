@@ -92,9 +92,10 @@ def test_end_to_end_comparative_and_approval_flow():
     assert appr_res.json()["status"] == "APPROVED"
 
     # 3. Export to Farvision PO staging payload
-    erp_res = client.get("/api/v1/erp/export/CS-AMR-T2-E2E")
+    erp_res = client.get("/api/v1/erp/export/json/CS-AMR-T2-E2E")
     assert erp_res.status_code == 200
-    po = erp_res.json()["farvision_po_payload"]
-    assert po["vendor_name"] == "Asian Paints Chemical Division"
-    assert po["total_po_amount"] == 524200.0
-    assert po["approved_by"] == "Arindam Mukherjee (HOD Projects)"
+    data = erp_res.json()
+    assert data["po_header"]["farvision_po_id"] == "PO-CS-AMR-T2-E2E"
+    assert data["po_header"]["vendor_name"] == "Asian Paints Chemical Division"
+    assert data["po_line_items"][0]["total_po_amount"] == 524200.0
+    assert data["po_header"]["approved_by"] == "Arindam Mukherjee (HOD Projects)"

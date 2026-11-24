@@ -1,17 +1,17 @@
-"""FastAPI Application for Vinayak Procurement Copilot with Neobrutalism UI.
+"""FastAPI Application for Vinayak Procurement Copilot with Neobrutalism UI & Farvision ERP Bridge.
 
-Neobrutalism Aesthetics:
-- High contrast bold 2px/3px black borders (`border-2 border-black` / `border-3 border-black`)
-- Hard drop shadows with no blur (`shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`)
-- Vivid retro-modern palette: Vibrant Yellow/Amber (#FEF08A / #FDE047), Mint (#86EFAC), Electric Blue, Coral
-- Bold typography with mono badges and tactile hover translations (`hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]`)
-- Accessibility compliant, full keyboard navigable, semantic HTML
+Complete Phase 1-4 Operational Stack:
+1. Requisition Ingestion & Farvision Matcher
+2. Multimodal Quote Extractor (Groq Llama-3.3-70B + Heuristic)
+3. Deterministic Cost & Comparative Statement Engine
+4. Neobrutalism HOD Decision Cockpit
+5. Farvision ERP CSV/JSON PO Staging Export & Immutable Audit Logger
 """
 
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
@@ -28,6 +28,8 @@ from src.services.extractor_service import parse_quote_heuristic, extract_quote_
 from src.services.cost_engine import normalize_quote
 from src.services.scoring_engine import generate_comparative_statement
 from src.services.vendor_service import get_default_vinayak_vendor_repo
+from src.services.erp_service import generate_farvision_po_payload, generate_farvision_csv
+from src.services.audit_service import audit_logger, AuditEventType
 
 app = FastAPI(
     title="Vinayak Procurement Copilot API",
@@ -56,11 +58,13 @@ class RequisitionParseRequest(BaseModel):
     tower: str = Field(default="Tower-2")
     quantity: Decimal = Field(gt=0)
     required_by_date: str = Field(description="YYYY-MM-DD")
+    actor_id: str = Field(default="site_engineer_01")
 
 
 class QuoteIngestRequest(BaseModel):
     raw_document_text: str
     vendor_hint: Optional[str] = None
+    actor_id: str = Field(default="procurement_officer_01")
 
 
 class ApprovalActionRequest(BaseModel):
@@ -107,6 +111,14 @@ def parse_and_match_requisition(req: RequisitionParseRequest):
     duplicate_warnings = detect_duplicate_requisitions(new_requisition, _requisitions)
     _requisitions.append(new_requisition)
 
+    # Log to audit trail
+    audit_logger.log_event(
+        event_type=AuditEventType.REQUISITION_CREATED,
+        actor_id=req.actor_id,
+        reference_id=new_requisition.requisition_id,
+        payload={"item_code": matched_item.item_code, "quantity": float(req.quantity)}
+    )
+
     return {
         "requisition": new_requisition,
         "matched_catalog_item": matched_item,
@@ -118,7 +130,14 @@ def parse_and_match_requisition(req: RequisitionParseRequest):
 @app.post("/api/v1/quotes/extract", response_model=RawQuoteInput, tags=["Quotes"])
 def extract_quote(req: QuoteIngestRequest):
     """Extracts raw unstructured vendor quotation into validated Pydantic schema."""
-    return extract_quote_with_groq(req.raw_document_text, vendor_hint=req.vendor_hint)
+    parsed = extract_quote_with_groq(req.raw_document_text, vendor_hint=req.vendor_hint)
+    audit_logger.log_event(
+        event_type=AuditEventType.QUOTE_INGESTED,
+        actor_id=req.actor_id,
+        reference_id=parsed.vendor_name,
+        payload={"rate": float(parsed.quoted_unit_rate), "unit": parsed.quoted_unit.value}
+    )
+    return parsed
 
 
 @app.post("/api/v1/comparatives/generate", response_model=ComparativeStatement, tags=["Comparative"])
@@ -130,7 +149,8 @@ def build_comparative_statement(
     boq_unit: UnitOfMeasure,
     budget_rate: Decimal,
     quotes: List[RawQuoteInput],
-    coverage_per_drum: Optional[Decimal] = None
+    coverage_per_drum: Optional[Decimal] = None,
+    actor_id: str = "procurement_lead_01"
 ):
     """Normalizes all quotes and generates weighted comparative statement."""
     normalized = [
@@ -154,6 +174,18 @@ def build_comparative_statement(
     )
 
     _active_statements[statement_id] = statement
+
+    audit_logger.log_event(
+        event_type=AuditEventType.COMPARATIVE_GENERATED,
+        actor_id=actor_id,
+        reference_id=statement_id,
+        payload={
+            "l1_vendor": statement.l1_vendor_name,
+            "recommended_vendor": statement.recommended_vendor_name,
+            "vendors_count": len(quotes)
+        }
+    )
+
     return statement
 
 
@@ -167,36 +199,71 @@ def approve_comparative(action: ApprovalActionRequest):
     statement.status = ApprovalStatus.APPROVED
     statement.approved_by = action.approved_by
     statement.approval_timestamp = datetime.now()
+
+    audit_logger.log_event(
+        event_type=AuditEventType.HOD_APPROVED,
+        actor_id=action.approved_by,
+        reference_id=action.statement_id,
+        payload={"recommended_vendor": statement.recommended_vendor_name, "remarks": action.remarks}
+    )
+
     return statement
 
 
-@app.get("/api/v1/erp/export/{statement_id}", tags=["Farvision ERP"])
-def export_to_farvision_po(statement_id: str):
-    """Generates Farvision ERP PO staging payload."""
+@app.get("/api/v1/erp/export/json/{statement_id}", tags=["Farvision ERP"])
+def export_to_farvision_json(statement_id: str):
+    """Generates Farvision ERP PO staging payload in JSON format."""
     statement = _active_statements.get(statement_id)
     if not statement:
         raise HTTPException(status_code=404, detail="Comparative statement not found")
     if statement.status != ApprovalStatus.APPROVED:
         raise HTTPException(status_code=400, detail="Cannot export unapproved comparative statement")
 
-    recommended = next(v for v in statement.ranked_vendors if v.is_recommended)
-    q = recommended.normalized_quote
+    payload = generate_farvision_po_payload(statement)
+    audit_logger.log_event(
+        event_type=AuditEventType.ERP_EXPORTED,
+        actor_id=statement.approved_by or "system",
+        reference_id=statement_id,
+        payload={"format": "JSON", "po_id": payload["po_header"]["farvision_po_id"]}
+    )
+    return payload
 
-    return {
-        "farvision_po_payload": {
-            "po_reference": f"PO-FARVISION-{statement.statement_id}",
-            "project_name": statement.project_name,
-            "vendor_name": recommended.vendor_name,
-            "item_package": statement.package_title,
-            "quantity": float(statement.boq_quantity),
-            "unit": q.boq_unit.value,
-            "rate_per_unit": float(q.landed_rate_per_boq_unit),
-            "total_po_amount": float(q.total_landed_cost),
-            "approved_by": statement.approved_by,
-            "approval_date": str(statement.approval_timestamp),
-            "audit_rationale": recommended.decision_rationale
-        }
-    }
+
+@app.get("/api/v1/erp/export/csv/{statement_id}", tags=["Farvision ERP"])
+def export_to_farvision_csv(statement_id: str):
+    """Generates Farvision ERP PO staging file in legacy CSV format."""
+    statement = _active_statements.get(statement_id)
+    if not statement:
+        raise HTTPException(status_code=404, detail="Comparative statement not found")
+    if statement.status != ApprovalStatus.APPROVED:
+        raise HTTPException(status_code=400, detail="Cannot export unapproved comparative statement")
+
+    csv_data = generate_farvision_csv(statement)
+    audit_logger.log_event(
+        event_type=AuditEventType.ERP_EXPORTED,
+        actor_id=statement.approved_by or "system",
+        reference_id=statement_id,
+        payload={"format": "CSV", "po_id": f"PO-{statement_id}"}
+    )
+    return Response(
+        content=csv_data,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=farvision_po_{statement_id}.csv"}
+    )
+
+
+@app.get("/api/v1/audit/logs", tags=["Audit"])
+def get_audit_trail(reference_id: Optional[str] = None):
+    """Returns immutable tamper-proof audit records."""
+    if reference_id:
+        return audit_logger.get_logs_for_reference(reference_id)
+    return audit_logger.get_all_logs()
+
+
+# Compatibility route for earlier UI calls
+@app.get("/api/v1/erp/export/{statement_id}", tags=["Farvision ERP"])
+def export_to_farvision_po(statement_id: str):
+    return export_to_farvision_json(statement_id)
 
 
 @app.get("/", response_class=HTMLResponse, tags=["Dashboard"])
@@ -215,7 +282,7 @@ def neobrutalism_dashboard():
   <style>
     body {
       font-family: 'Space Grotesk', sans-serif;
-      background-color: #FEFCE8; /* Creamy warm yellow background */
+      background-color: #FEFCE8;
     }
     .font-mono {
       font-family: 'Space Mono', monospace;
@@ -271,13 +338,16 @@ def neobrutalism_dashboard():
         <a href="/docs" target="_blank" class="neo-btn bg-white hover:bg-slate-100 text-black font-bold px-4 py-2.5 text-sm uppercase font-mono">
           API Specs
         </a>
+        <a href="/api/v1/audit/logs" target="_blank" class="neo-btn bg-[#BAE6FD] hover:bg-[#7DD3FC] text-black font-bold px-4 py-2.5 text-sm uppercase font-mono">
+          Audit Logs
+        </a>
         <a href="/health" target="_blank" class="neo-btn bg-[#86EFAC] hover:bg-[#4ADE80] text-black font-bold px-4 py-2.5 text-sm uppercase font-mono">
-          System Healthy &bull; 1.0.0
+          System Healthy
         </a>
       </div>
     </header>
 
-    <!-- Main Grid: Site Input (Left) & Active Package (Right) -->
+    <!-- Main Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
       <!-- Left Column: Site Ingestion & WhatsApp Parser -->
@@ -324,23 +394,21 @@ def neobrutalism_dashboard():
             </button>
           </form>
 
-          <!-- Match Output Box -->
           <div id="matchOutput" class="hidden neo-box-sm bg-[#FEF08A] p-4 text-xs space-y-1 font-mono"></div>
         </div>
 
-        <!-- Vendor Trust Matrix Pill -->
         <div class="neo-box bg-[#FBCFE8] p-5 space-y-2">
           <h3 class="font-bold text-sm uppercase flex items-center gap-2">
             <span class="w-3 h-3 bg-black inline-block"></span>
-            Tribal Vendor Intelligence
+            Farvision ERP Integration
           </h3>
           <p class="text-xs leading-relaxed font-medium">
-            Price is only 60% of the award decision. 40% weights quality test pass history and on-time delivery. Vendors with active site disputes receive an immediate algorithmic penalty.
+            Approved purchase orders are automatically converted into Farvision legacy CSV and modern REST JSON payloads, preserving the full audit trail.
           </p>
         </div>
       </section>
 
-      <!-- Right Column: Comparative Statement Cockpit (The Crown Jewel) -->
+      <!-- Right Column: Comparative Statement Cockpit -->
       <section class="lg:col-span-8 space-y-6">
 
         <div class="neo-box bg-white p-6 space-y-6">
@@ -370,7 +438,6 @@ def neobrutalism_dashboard():
                 </tr>
               </thead>
               <tbody class="font-medium">
-                <!-- Vendor 1: Recommended Winner -->
                 <tr class="border-b-2 border-black bg-[#DCFCE7]">
                   <td class="p-3 border-r-2 border-black font-bold">
                     Asian Paints Chemical Div.
@@ -406,7 +473,6 @@ def neobrutalism_dashboard():
                   </td>
                 </tr>
 
-                <!-- Vendor 2: L1 on raw price, but penalized for dispute -->
                 <tr class="border-b-2 border-black bg-white">
                   <td class="p-3 border-r-2 border-black font-bold">
                     Bengal Waterproofing Sol.
@@ -441,7 +507,6 @@ def neobrutalism_dashboard():
                   </td>
                 </tr>
 
-                <!-- Vendor 3: Quoted in SQ.M -->
                 <tr class="bg-white">
                   <td class="p-3 border-r-2 border-black font-bold">
                     Dulux Aquatech Pro
@@ -488,12 +553,15 @@ def neobrutalism_dashboard():
                 AI recommends <strong>Asian Paints Chemical Division</strong> (₹5,24,200.00). Farvision ERP PO will only be generated upon your signature.
               </p>
             </div>
-            <div class="flex gap-3">
-              <button id="approveBtn" onclick="signApproval();" class="neo-btn bg-[#86EFAC] hover:bg-[#4ADE80] font-black uppercase text-sm px-6 py-3">
+            <div class="flex flex-wrap gap-2">
+              <button id="approveBtn" onclick="signApproval();" class="neo-btn bg-[#86EFAC] hover:bg-[#4ADE80] font-black uppercase text-sm px-5 py-3">
                 Sign & Approve Award &check;
               </button>
-              <button id="exportBtn" disabled onclick="downloadERPPayload();" class="neo-btn bg-white hover:bg-slate-100 font-bold uppercase text-xs px-4 py-3 opacity-50 cursor-not-allowed">
-                Export Farvision PO
+              <button id="exportJsonBtn" disabled onclick="downloadERPPayload('json');" class="neo-btn bg-white hover:bg-slate-100 font-bold uppercase text-xs px-3 py-3 opacity-50 cursor-not-allowed">
+                Export JSON
+              </button>
+              <button id="exportCsvBtn" disabled onclick="downloadERPPayload('csv');" class="neo-btn bg-white hover:bg-slate-100 font-bold uppercase text-xs px-3 py-3 opacity-50 cursor-not-allowed">
+                Export CSV
               </button>
             </div>
           </div>
@@ -559,12 +627,14 @@ def neobrutalism_dashboard():
           const btn = document.getElementById('approveBtn');
           btn.innerText = "Approved & Signed";
           btn.disabled = true;
-          btn.className = "neo-btn bg-slate-300 font-bold uppercase text-xs px-6 py-3 cursor-not-allowed";
+          btn.className = "neo-btn bg-slate-300 font-bold uppercase text-xs px-5 py-3 cursor-not-allowed";
 
-          const exportBtn = document.getElementById('exportBtn');
-          exportBtn.disabled = false;
-          exportBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-          exportBtn.className = "neo-btn bg-[#67E8F9] hover:bg-[#22D3EE] font-bold uppercase text-xs px-4 py-3";
+          ['exportJsonBtn', 'exportCsvBtn'].forEach(id => {
+            const b = document.getElementById(id);
+            b.disabled = false;
+            b.classList.remove('opacity-50', 'cursor-not-allowed');
+            b.className = "neo-btn bg-[#67E8F9] hover:bg-[#22D3EE] font-bold uppercase text-xs px-3 py-3";
+          });
 
           const banner = document.getElementById('approvalBanner');
           banner.classList.remove('hidden');
@@ -578,20 +648,9 @@ def neobrutalism_dashboard():
       }
     }
 
-    async function downloadERPPayload() {
-      try {
-        const res = await fetch('/api/v1/erp/export/CS-AMR-T2-E2E');
-        const data = await res.json();
-        const jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", jsonStr);
-        downloadAnchor.setAttribute("download", "farvision_po_export_CS-AMR-T2-E2E.json");
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
-      } catch (err) {
-        alert("Failed to export: " + err);
-      }
+    async function downloadERPPayload(format) {
+      const url = `/api/v1/erp/export/${format}/CS-AMR-T2-E2E`;
+      window.open(url, '_blank');
     }
   </script>
 </body>
