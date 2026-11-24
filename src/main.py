@@ -533,7 +533,9 @@ def neobrutalism_dashboard():
 
       <!-- Theme Mode Toggle -->
       <button id="themeToggleBtn" onclick="toggleTheme()" class="neo-btn bg-white hover:bg-slate-100 text-black px-3.5 py-2 font-mono text-xs font-bold uppercase flex items-center gap-2 cursor-pointer" aria-label="Toggle light and dark mode">
-        <span id="themeIcon">🌙</span>
+        <svg id="themeIcon" class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+          <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
+        </svg>
         <span id="themeLabel">Dark Mode</span>
       </button>
     </header>
@@ -584,9 +586,13 @@ def neobrutalism_dashboard():
             <div class="border-2 border-dashed border-black p-3 bg-[#FFFBEB] space-y-2">
               <div class="flex items-center justify-between">
                 <label class="text-xs font-mono font-bold uppercase flex items-center gap-1.5 cursor-pointer">
-                  <span>🎙️ Voice Note / Audio</span>
+                  <svg class="w-3.5 h-3.5 fill-current text-slate-800" viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                  <span>Voice Note / Audio</span>
                 </label>
-                <span id="audioStatus" class="text-[10px] font-mono text-slate-500">.mp3, .wav, .m4a, .ogg</span>
+                <span id="audioStatus" class="text-[10px] font-mono text-slate-500">.mp3, .wav, .m4a</span>
               </div>
               <input id="audioInput" type="file" accept="audio/*" class="w-full text-xs font-mono file:mr-2 file:py-1 file:px-2 file:border-2 file:border-black file:bg-[#BAE6FD] file:font-bold file:cursor-pointer cursor-pointer" onchange="handleAudioUpload(event)" />
             </div>
@@ -756,14 +762,23 @@ def neobrutalism_dashboard():
               </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <button id="approveBtn" onclick="signApproval();" class="neo-btn bg-[#86EFAC] hover:bg-[#4ADE80] font-black uppercase text-sm px-5 py-3">
-                Approve Award &check;
+              <button id="approveBtn" onclick="signApproval();" class="neo-btn bg-[#86EFAC] hover:bg-[#4ADE80] font-black uppercase text-sm px-5 py-3 flex items-center gap-2">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                </svg>
+                <span>Approve Award</span>
               </button>
               <button id="exportJsonBtn" disabled onclick="downloadERPPayload('json');" class="neo-btn export-btn-disabled font-bold uppercase text-xs px-4 py-3 flex items-center gap-1.5" title="Approve award first to unlock export">
-                <span>📄</span> Export JSON
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                </svg>
+                <span>Export JSON</span>
               </button>
               <button id="exportCsvBtn" disabled onclick="downloadERPPayload('csv');" class="neo-btn export-btn-disabled font-bold uppercase text-xs px-4 py-3 flex items-center gap-1.5" title="Approve award first to unlock export">
-                <span>📊</span> Export CSV
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+                <span>Export CSV</span>
               </button>
             </div>
           </div>
@@ -791,7 +806,11 @@ def neobrutalism_dashboard():
       const icon = document.getElementById('themeIcon');
       const label = document.getElementById('themeLabel');
       if (icon && label) {
-        icon.innerText = isDark ? '☀️' : '🌙';
+        if (isDark) {
+          icon.innerHTML = '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>';
+        } else {
+          icon.innerHTML = '<path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>';
+        }
         label.innerText = isDark ? 'Light Mode' : 'Dark Mode';
       }
     }
