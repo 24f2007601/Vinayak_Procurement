@@ -447,10 +447,36 @@ def neobrutalism_dashboard():
       color: #000000 !important;
       border-color: #F8FAFC !important;
     }
-    .neo-btn {
-      border: 3px solid #000000;
-      box-shadow: 4px 4px 0px 0px #000000;
-      transition: all 0.15s ease-in-out;
+    /* Clear, high-contrast Export Buttons */
+    .export-btn-disabled {
+      background-color: #E2E8F0 !important;
+      color: #64748B !important;
+      border: 2px solid #000000 !important;
+      box-shadow: 2px 2px 0px 0px #000000 !important;
+      cursor: not-allowed !important;
+      opacity: 0.9 !important;
+    }
+    body.dark .export-btn-disabled {
+      background-color: #1E293B !important;
+      color: #94A3B8 !important;
+      border: 2px solid #64748B !important;
+      box-shadow: 2px 2px 0px 0px #334155 !important;
+      cursor: not-allowed !important;
+      opacity: 0.9 !important;
+    }
+    .export-btn-active {
+      background-color: #38BDF8 !important;
+      color: #000000 !important;
+      border: 3px solid #000000 !important;
+      box-shadow: 4px 4px 0px 0px #000000 !important;
+      cursor: pointer !important;
+    }
+    body.dark .export-btn-active {
+      background-color: #38BDF8 !important;
+      color: #000000 !important;
+      border: 3px solid #F8FAFC !important;
+      box-shadow: 4px 4px 0px 0px #F8FAFC !important;
+      cursor: pointer !important;
     }
     body.dark .neo-btn {
       border-color: #F8FAFC;
@@ -729,15 +755,15 @@ def neobrutalism_dashboard():
                 Recommended award: <strong>Asian Paints Chemical Division</strong> (₹5,24,200.00). Click below to approve and export to Farvision ERP.
               </p>
             </div>
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <button id="approveBtn" onclick="signApproval();" class="neo-btn bg-[#86EFAC] hover:bg-[#4ADE80] font-black uppercase text-sm px-5 py-3">
                 Approve Award &check;
               </button>
-              <button id="exportJsonBtn" disabled onclick="downloadERPPayload('json');" class="neo-btn bg-white hover:bg-slate-100 font-bold uppercase text-xs px-3 py-3 opacity-50 cursor-not-allowed">
-                Export JSON
+              <button id="exportJsonBtn" disabled onclick="downloadERPPayload('json');" class="neo-btn export-btn-disabled font-bold uppercase text-xs px-4 py-3 flex items-center gap-1.5" title="Approve award first to unlock export">
+                <span>📄</span> Export JSON
               </button>
-              <button id="exportCsvBtn" disabled onclick="downloadERPPayload('csv');" class="neo-btn bg-white hover:bg-slate-100 font-bold uppercase text-xs px-3 py-3 opacity-50 cursor-not-allowed">
-                Export CSV
+              <button id="exportCsvBtn" disabled onclick="downloadERPPayload('csv');" class="neo-btn export-btn-disabled font-bold uppercase text-xs px-4 py-3 flex items-center gap-1.5" title="Approve award first to unlock export">
+                <span>📊</span> Export CSV
               </button>
             </div>
           </div>
@@ -903,7 +929,7 @@ def neobrutalism_dashboard():
         ['exportJsonBtn', 'exportCsvBtn'].forEach(id => {
           const b = document.getElementById(id);
           b.disabled = true;
-          b.className = "neo-btn bg-white hover:bg-slate-100 font-bold uppercase text-xs px-3 py-3 opacity-50 cursor-not-allowed";
+          b.className = "neo-btn export-btn-disabled font-bold uppercase text-xs px-4 py-3 flex items-center gap-1.5";
         });
 
         document.getElementById('approvalBanner').classList.add('hidden');
@@ -996,8 +1022,7 @@ def neobrutalism_dashboard():
           ['exportJsonBtn', 'exportCsvBtn'].forEach(id => {
             const b = document.getElementById(id);
             b.disabled = false;
-            b.classList.remove('opacity-50', 'cursor-not-allowed');
-            b.className = "neo-btn bg-[#67E8F9] hover:bg-[#22D3EE] font-bold uppercase text-xs px-3 py-3";
+            b.className = "neo-btn export-btn-active hover:brightness-105 font-black uppercase text-xs px-4 py-3 flex items-center gap-1.5";
           });
 
           const banner = document.getElementById('approvalBanner');
