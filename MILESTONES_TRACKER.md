@@ -1,0 +1,102 @@
+# Project Milestones & Progress Tracker
+**Project**: Vinayak Group AI Procurement Copilot  
+**Repository**: [https://github.com/24f2007601/Vinayak_Procurement](https://github.com/24f2007601/Vinayak_Procurement)  
+**Governing Rule**: This document MUST be updated whenever any milestone phase code change is made.
+
+---
+
+## Progress Overview
+
+| Phase | Description | Status | Completion Date | Commit |
+|:---:|---|:---:|:---:|:---:|
+| **Phase 1** | Foundation, Schemas & Deterministic Cost Engine | **COMPLETED** (100%) | 2026-11-24 | [`b1c550a`](https://github.com/24f2007601/Vinayak_Procurement/commit/b1c550a) |
+| **Phase 2** | Ingestion & Multimodal Extraction Pipeline | **READY TO START** | — | — |
+| **Phase 3** | Comparative Statement Engine & HOD Dashboard | **PENDING** | — | — |
+| **Phase 4** | Farvision ERP Bridge & Security Hardening | **PENDING** | — | — |
+
+---
+
+## Detailed Milestone Checklist
+
+### Phase 1: Foundation, Schemas & Deterministic Math Engine
+- [x] **M1.1: Core Constants & Configuration** (`src/constants.py`)
+  - [x] Unit conversion factors (`SQFT_PER_SQM`, `LITRES_PER_STANDARD_DRUM`, `KG_PER_METRIC_TON`).
+  - [x] Standard GST tax rates (18%, 28%, 0%).
+  - [x] Scoring weights (60% Price, 25% Delivery, 15% Quality).
+  - [x] Dispute penalty ratios.
+- [x] **M1.2: Domain Models & Typed Schemas** (`src/models/`)
+  - [x] Requisition and Farvision catalog models (`src/models/requisition.py`).
+  - [x] Raw vendor quotation and normalized quote items (`src/models/quote.py`).
+  - [x] Vendor track record, ranked vendor, and comparative statement (`src/models/comparative.py`).
+- [x] **M1.3: Deterministic Cost Normalizer** (`src/services/cost_engine.py`)
+  - [x] Pure deterministic unit conversion function (`convert_quantity`).
+  - [x] Exact GST tax calculator (`calculate_tax`).
+  - [x] Landed cost and normalized rate per BOQ unit (`normalize_quote`).
+- [x] **M1.4: Scoring & Comparative Engine** (`src/services/scoring_engine.py`)
+  - [x] Relative price scoring vs. true L1 (`calculate_price_score`).
+  - [x] Weighted composite score with dispute deduction (`calculate_composite_score`).
+  - [x] Plain-English audit rationale generator (`compose_decision_rationale`).
+  - [x] End-to-end comparative compiler (`generate_comparative_statement`).
+- [x] **M1.5: Automated Verification Suite** (`tests/`)
+  - [x] Test fixtures for *Waterproofing at Vinayak Amara, Tower-2* (`tests/conftest.py`).
+  - [x] 100% deterministic test coverage for cost engine (`tests/test_cost_engine.py`).
+  - [x] End-to-end comparative verification with 3 competing vendors (`tests/test_scoring_engine.py`).
+
+---
+
+### Phase 2: Ingestion & Multimodal Extraction Pipeline
+- [ ] **M2.1: Requisition Parser & Farvision Matcher**
+  - [ ] Raw text / WhatsApp input parsing endpoint.
+  - [ ] Levenshtein & semantic catalog matcher against Farvision item codes.
+  - [ ] Duplicate requisition detector (checks active site orders to prevent over-ordering).
+- [ ] **M2.2: Multimodal Quote Extraction Service**
+  - [ ] PDF & image quote extractor using structured LLM schemas.
+  - [ ] Bounding box / text excerpt provenance extraction for audit links.
+  - [ ] Schema rejection and sanitization against prompt injection.
+- [ ] **M2.3: Vendor History & Dispute Store**
+  - [ ] Persistent vendor track record repository.
+  - [ ] Dynamic performance lookup by vendor name/tax ID.
+- [ ] **M2.4: Phase 2 Test Verification**
+  - [ ] Unit tests for catalog fuzzy matching.
+  - [ ] Extraction tests on sample messy PDF quotes.
+
+---
+
+### Phase 3: Comparative Statement Engine & HOD Approval Cockpit
+- [ ] **M3.1: Comparative Statement Generator API**
+  - [ ] REST API endpoints for uploading quotes and generating comparative statement JSON.
+  - [ ] Identification and flagging of commercial exclusions.
+- [ ] **M3.2: Executive HOD Approval Interface (UI)**
+  - [ ] Requisition input view for site engineers.
+  - [ ] Side-by-side comparative matrix table.
+  - [ ] One-click HOD recommendation card with plain-English trade-off summary.
+- [ ] **M3.3: Phase 3 Test Verification**
+  - [ ] API integration tests.
+  - [ ] Approval workflow state transition tests (`PENDING` $\rightarrow$ `APPROVED`).
+
+---
+
+### Phase 4: Production Hardening, ERP Bridge & Deployment
+- [ ] **M4.1: Farvision ERP Export Staging Bridge**
+  - [ ] Farvision-compliant CSV & JSON PO staging generator.
+  - [ ] Webhook dispatcher for downstream ERP staging tables.
+- [ ] **M4.2: Security & Access Control Hardening**
+  - [ ] Role-based access control (Site Engineer vs. Procurement vs. HOD).
+  - [ ] Immutable audit log recorder for all approval events.
+- [ ] **M4.3: Containerization & Documentation**
+  - [ ] Multi-stage `Dockerfile` and `docker-compose.yml`.
+  - [ ] Health and readiness check endpoints (`/health`, `/ready`).
+  - [ ] Final deployment guide.
+
+---
+
+## Mandatory Milestone Update Workflow
+
+Whenever any developer or AI agent finishes a task or milestone in this project:
+1. **Verify**: Ensure all automated tests pass (`uv run --with pytest --with pydantic pytest tests/`).
+2. **Update**: Mark the completed checkboxes `[x]` in `MILESTONES_TRACKER.md` and record the commit hash.
+3. **Commit Together**: The code change and the updated `MILESTONES_TRACKER.md` MUST be committed in the same git commit:
+   ```bash
+   git add <modified_code_files> MILESTONES_TRACKER.md
+   git commit -m "feat(<phase>): <description> and update milestones tracker"
+   ```

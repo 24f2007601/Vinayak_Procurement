@@ -23,6 +23,7 @@ It automates the manual, error-prone procurement lifecycle:
 
 ## Core Documentation
 
+- **[MILESTONES_TRACKER.md](file:///c:/Users/prith/Projects/Vinayak_Procurement/MILESTONES_TRACKER.md)**: Real-time milestone tracker and mandatory update workflow across all development phases.
 - **[PRODUCT_PLAN.md](file:///c:/Users/prith/Projects/Vinayak_Procurement/PRODUCT_PLAN.md)**: Product strategy, business case, personas, data models, and the `/ponytail` elimination ledger.
 - **[SYSTEM_ARCHITECTURE.md](file:///c:/Users/prith/Projects/Vinayak_Procurement/SYSTEM_ARCHITECTURE.md)**: Architecture diagram, trust boundaries, deterministic math vs. probabilistic extraction, and schema design.
 - **[PHASE_ROADMAP.md](file:///c:/Users/prith/Projects/Vinayak_Procurement/PHASE_ROADMAP.md)**: 4-phase staged delivery plan from core math engine to production hardening.
