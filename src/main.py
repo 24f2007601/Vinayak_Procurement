@@ -335,7 +335,7 @@ def neobrutalism_dashboard():
       transition: background-color 0.2s ease, color 0.2s ease;
     }
     body.dark {
-      background-color: #0F172A;
+      background-color: #0B1120;
       color: #F8FAFC;
     }
     .font-mono {
@@ -348,7 +348,7 @@ def neobrutalism_dashboard():
     body.dark .neo-box {
       border-color: #F8FAFC;
       box-shadow: 5px 5px 0px 0px #F8FAFC;
-      background-color: #1E293B;
+      background-color: #111827;
       color: #F8FAFC;
     }
     .neo-box-sm {
@@ -358,8 +358,94 @@ def neobrutalism_dashboard():
     body.dark .neo-box-sm {
       border-color: #F8FAFC;
       box-shadow: 3px 3px 0px 0px #F8FAFC;
-      background-color: #1E293B;
+      background-color: #1F2937;
       color: #F8FAFC;
+    }
+    body.dark header.neo-box {
+      background-color: #EAB308 !important;
+      color: #000000 !important;
+      border-color: #F8FAFC !important;
+    }
+    body.dark header.neo-box h1,
+    body.dark header.neo-box p {
+      color: #000000 !important;
+    }
+    /* Dark mode text readability overrides */
+    body.dark .text-slate-600,
+    body.dark .text-slate-700,
+    body.dark .text-slate-800,
+    body.dark .text-black {
+      color: #E2E8F0 !important;
+    }
+    body.dark table {
+      border-color: #F8FAFC !important;
+    }
+    body.dark table th,
+    body.dark table td {
+      border-color: #475569 !important;
+    }
+    body.dark table tbody tr {
+      background-color: #1E293B !important;
+      color: #F8FAFC !important;
+    }
+    body.dark table tbody tr.bg-\[\#DCFCE7\] {
+      background-color: #064E3B !important; /* Deep contrast emerald for winner row in dark mode */
+      color: #ECFDF5 !important;
+    }
+    body.dark table tbody tr.bg-\[\#DCFCE7\] td {
+      border-color: #059669 !important;
+    }
+    body.dark table tbody tr.bg-\[\#DCFCE7\] .text-emerald-800,
+    body.dark table tbody tr.bg-\[\#DCFCE7\] .text-emerald-900 {
+      color: #6EE7B7 !important;
+    }
+    body.dark table tbody tr .text-emerald-700 {
+      color: #34D399 !important;
+    }
+    body.dark table tbody tr .text-red-800 {
+      color: #FCA5A5 !important;
+    }
+    body.dark table tbody tr .text-slate-600 {
+      color: #CBD5E1 !important;
+    }
+    body.dark table tbody tr .text-slate-800 {
+      color: #F1F5F9 !important;
+    }
+    body.dark #matchOutput {
+      background-color: #854D0E !important;
+      color: #FEF9C3 !important;
+      border-color: #F8FAFC !important;
+    }
+    body.dark #matchOutput div {
+      color: #FEF9C3 !important;
+    }
+    body.dark .bg-\[\#FFFBEB\] {
+      background-color: #1E293B !important;
+      border-color: #F8FAFC !important;
+    }
+    body.dark .bg-\[\#FBCFE8\] {
+      background-color: #831843 !important;
+      border-color: #F8FAFC !important;
+      color: #FCE7F3 !important;
+    }
+    body.dark .bg-\[\#FBCFE8\] h3,
+    body.dark .bg-\[\#FBCFE8\] p {
+      color: #FCE7F3 !important;
+    }
+    body.dark .bg-\[\#FEF08A\] {
+      background-color: #713F12 !important;
+      border-color: #F8FAFC !important;
+      color: #FEF08A !important;
+    }
+    body.dark .bg-\[\#FEF08A\] h4,
+    body.dark .bg-\[\#FEF08A\] p,
+    body.dark .bg-\[\#FEF08A\] strong {
+      color: #FEF9C3 !important;
+    }
+    body.dark #statusBadge {
+      background-color: #CA8A04 !important;
+      color: #000000 !important;
+      border-color: #F8FAFC !important;
     }
     .neo-btn {
       border: 3px solid #000000;
@@ -389,7 +475,7 @@ def neobrutalism_dashboard():
     body.dark .neo-input {
       border-color: #F8FAFC;
       box-shadow: 3px 3px 0px 0px #F8FAFC;
-      background-color: #334155;
+      background-color: #1E293B;
       color: #F8FAFC;
     }
     .neo-input:focus {
@@ -400,7 +486,7 @@ def neobrutalism_dashboard():
     body.dark .neo-input:focus {
       border-color: #F8FAFC;
       box-shadow: 4px 4px 0px 0px #F8FAFC;
-      background-color: #475569;
+      background-color: #334155;
     }
   </style>
 </head>
