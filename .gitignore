@@ -1,79 +1,21 @@
+# Ignore all markdown documentation files except README.md
+*.md
+!README.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Environments
+# Environments & secrets
 .env
 .env.*
 !.env.example
-env/
 venv/
-ENV/
-env.bak/
-venv.bak/
+env/
+.pytest_cache/
 
-# IDEs & Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Node / Frontend artifacts (if UI added)
-node_modules/
-.npm/
-dist-client/
-build-client/
-
-# Local data & upload caches
+# Local data & upload buffers
 uploads/
 temp/
 scratch/
