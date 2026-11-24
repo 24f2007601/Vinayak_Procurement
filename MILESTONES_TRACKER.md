@@ -12,7 +12,7 @@
 | **Phase 1** | Foundation, Schemas & Deterministic Cost Engine | **COMPLETED** (100%) | 2026-11-24 | [`b1c550a`](https://github.com/24f2007601/Vinayak_Procurement/commit/b1c550a) |
 | **Phase 2** | Ingestion & Multimodal Extraction Pipeline | **COMPLETED** (100%) | 2026-11-24 | [`68aedfa`](https://github.com/24f2007601/Vinayak_Procurement/commit/68aedfa) |
 | **Phase 3** | Comparative Statement Engine & Neobrutalism HOD Dashboard | **COMPLETED** (100%) | 2026-11-24 | [`01e2a40`](https://github.com/24f2007601/Vinayak_Procurement/commit/01e2a40) |
-| **Phase 4** | Farvision ERP Export Bridge, Security & Containerization | **COMPLETED** (100%) | 2026-11-24 | Pending commit |
+| **Phase 4** | Farvision ERP Export Bridge, Security & Containerization | **COMPLETED** (100%) | 2026-11-24 | [`6f86691`](https://github.com/24f2007601/Vinayak_Procurement/commit/6f86691) |
 
 ---
 
