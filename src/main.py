@@ -328,22 +328,11 @@ def neobrutalism_dashboard():
     <header class="neo-box bg-[#FDE047] p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
         <div class="flex items-center gap-3">
-          <span class="bg-black text-white px-3 py-1 font-mono text-xs uppercase font-bold tracking-wider">Kolkata Projects</span>
-          <span class="bg-[#86EFAC] text-black px-3 py-1 font-mono text-xs uppercase font-bold border-2 border-black">5 Sites Active</span>
+          <span class="bg-black text-white px-3 py-1 font-mono text-xs uppercase font-bold tracking-wider">Vinayak Group</span>
+          <span class="bg-[#86EFAC] text-black px-3 py-1 font-mono text-xs uppercase font-bold border-2 border-black">5 Kolkata Sites</span>
         </div>
-        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mt-2 text-black">VINAYAK PROCUREMENT COPILOT</h1>
-        <p class="font-bold text-sm md:text-base text-black mt-1">Site Requisitions &bull; Automated Normalization &bull; Farvision PO Handoff</p>
-      </div>
-      <div class="flex flex-wrap gap-3">
-        <a href="/docs" target="_blank" class="neo-btn bg-white hover:bg-slate-100 text-black font-bold px-4 py-2.5 text-sm uppercase font-mono">
-          API Specs
-        </a>
-        <a href="/api/v1/audit/logs" target="_blank" class="neo-btn bg-[#BAE6FD] hover:bg-[#7DD3FC] text-black font-bold px-4 py-2.5 text-sm uppercase font-mono">
-          Audit Logs
-        </a>
-        <a href="/health" target="_blank" class="neo-btn bg-[#86EFAC] hover:bg-[#4ADE80] text-black font-bold px-4 py-2.5 text-sm uppercase font-mono">
-          System Healthy
-        </a>
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mt-2 text-black">PROCUREMENT PORTAL</h1>
+        <p class="font-bold text-sm md:text-base text-black mt-1">Site Requisitions &bull; Vendor Comparatives &bull; Purchase Orders</p>
       </div>
     </header>
 
@@ -400,10 +389,10 @@ def neobrutalism_dashboard():
         <div class="neo-box bg-[#FBCFE8] p-5 space-y-2">
           <h3 class="font-bold text-sm uppercase flex items-center gap-2">
             <span class="w-3 h-3 bg-black inline-block"></span>
-            Farvision ERP Integration
+            Vendor Evaluation Policy
           </h3>
           <p class="text-xs leading-relaxed font-medium">
-            Approved purchase orders are automatically converted into Farvision legacy CSV and modern REST JSON payloads, preserving the full audit trail.
+            Quotes are evaluated on landed cost (60%), past delivery track record (25%), and quality pass rate (15%). Active site disputes carry automatic score deductions.
           </p>
         </div>
       </section>
@@ -548,14 +537,14 @@ def neobrutalism_dashboard():
           <!-- HOD Action Deck -->
           <div class="neo-box-sm bg-[#FEF08A] p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h4 class="font-bold text-base uppercase">HOD Executive Decision Gate</h4>
+              <h4 class="font-bold text-base uppercase">HOD Award Sign-off</h4>
               <p class="text-xs text-slate-800">
-                AI recommends <strong>Asian Paints Chemical Division</strong> (₹5,24,200.00). Farvision ERP PO will only be generated upon your signature.
+                Recommended award: <strong>Asian Paints Chemical Division</strong> (₹5,24,200.00). Click below to approve and export to Farvision ERP.
               </p>
             </div>
             <div class="flex flex-wrap gap-2">
               <button id="approveBtn" onclick="signApproval();" class="neo-btn bg-[#86EFAC] hover:bg-[#4ADE80] font-black uppercase text-sm px-5 py-3">
-                Sign & Approve Award &check;
+                Approve Award &check;
               </button>
               <button id="exportJsonBtn" disabled onclick="downloadERPPayload('json');" class="neo-btn bg-white hover:bg-slate-100 font-bold uppercase text-xs px-3 py-3 opacity-50 cursor-not-allowed">
                 Export JSON
