@@ -49,7 +49,56 @@ app.add_middleware(
 _catalog = get_default_vinayak_catalog()
 _vendor_repo = get_default_vinayak_vendor_repo()
 _requisitions: List[SiteRequisition] = []
-_active_statements: dict[str, ComparativeStatement] = {}
+
+# Pre-seed active comparative statement for the default work package (Amara Tower-2)
+def _create_default_statement() -> ComparativeStatement:
+    boq_qty = Decimal("12500.0")
+    boq_unit = UnitOfMeasure.SQFT
+    budget_rate = Decimal("45.00")
+    quotes = [
+        RawQuoteInput(
+            vendor_name="Bengal Waterproofing Solutions",
+            quoted_unit_rate=Decimal("35.00"),
+            quoted_unit=UnitOfMeasure.SQFT,
+            gst_percent=Decimal("18.0"),
+            freight_term=FreightTerm.INCLUDED,
+            exclusions=["Surface grinding and crack filling extra at actuals"]
+        ),
+        RawQuoteInput(
+            vendor_name="Asian Paints Chemical Division",
+            quoted_unit_rate=Decimal("8800.00"),
+            quoted_unit=UnitOfMeasure.DRUM,
+            gst_percent=Decimal("18.0"),
+            freight_term=FreightTerm.EXTRA_FIXED,
+            freight_amount=Decimal("5000.00")
+        ),
+        RawQuoteInput(
+            vendor_name="Dulux Aquatech Pro",
+            quoted_unit_rate=Decimal("410.00"),
+            quoted_unit=UnitOfMeasure.SQM,
+            gst_percent=Decimal("18.0"),
+            freight_term=FreightTerm.INCLUDED
+        )
+    ]
+    norm = [
+        normalize_quote(q, boq_qty, boq_unit, coverage_per_drum_sqft=Decimal("250.0"))
+        for q in quotes
+    ]
+    tracks = {q.vendor_name: _vendor_repo.get_track_record(q.vendor_name) for q in norm}
+    return generate_comparative_statement(
+        statement_id="CS-AMR-T2-E2E",
+        project_name="Vinayak Amara",
+        package_title="Waterproofing at Vinayak Amara, Tower-2",
+        boq_quantity=boq_qty,
+        budget_rate=budget_rate,
+        quotes=norm,
+        track_records=tracks
+    )
+
+_default_statement = _create_default_statement()
+_active_statements: dict[str, ComparativeStatement] = {
+    "CS-AMR-T2-E2E": _default_statement
+}
 
 
 class RequisitionParseRequest(BaseModel):
